@@ -1,0 +1,1293 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prof. Moreno — Estrutura de Dados</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;700;800&family=Syne:wght@400;700;800;900&display=swap');
+
+:root {
+  --bg: #07090f;
+  --surface: #0d1117;
+  --panel: #111827;
+  --border: #1f2d45;
+  --accent: #f5a623;
+  --accent2: #e84393;
+  --cyan: #00d4ff;
+  --green: #39ff14;
+  --red: #ff3355;
+  --dim: #4a5a7a;
+  --text: #c8d8f0;
+  --muted: #6b7a9a;
+  --white: #e8f0ff;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'JetBrains Mono', monospace;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* SCANLINE EFFECT */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px);
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* HEADER */
+.header {
+  position: relative;
+  padding: 40px 30px 30px;
+  border-bottom: 1px solid var(--border);
+  overflow: hidden;
+}
+.header::before {
+  content: '';
+  position: absolute;
+  top: -60px; left: -60px;
+  width: 300px; height: 300px;
+  background: radial-gradient(circle, rgba(245,166,35,0.12) 0%, transparent 70%);
+  pointer-events: none;
+}
+.header::after {
+  content: '';
+  position: absolute;
+  bottom: -40px; right: -40px;
+  width: 250px; height: 250px;
+  background: radial-gradient(circle, rgba(0,212,255,0.08) 0%, transparent 70%);
+  pointer-events: none;
+}
+.prof-badge {
+  display: inline-block;
+  font-size: 0.62rem;
+  letter-spacing: 3px;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  padding: 4px 12px;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+}
+.header h1 {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(1.8rem, 5vw, 3.2rem);
+  font-weight: 900;
+  color: var(--white);
+  line-height: 1.1;
+  margin-bottom: 8px;
+}
+.header h1 span { color: var(--accent); }
+.header p {
+  font-size: 0.78rem;
+  color: var(--muted);
+  letter-spacing: 1px;
+  max-width: 500px;
+}
+
+/* NAV */
+nav {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+nav::-webkit-scrollbar { display: none; }
+.nav-btn {
+  flex-shrink: 0;
+  padding: 14px 20px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 1px;
+  border: none;
+  background: transparent;
+  color: var(--dim);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.nav-btn:hover { color: var(--text); background: rgba(255,255,255,0.03); }
+.nav-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+/* SECTIONS */
+.section { display: none; padding: 30px; max-width: 1000px; margin: 0 auto; }
+.section.active { display: block; animation: fadeUp 0.3s ease; }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* SECTION HEADER */
+.sec-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--white);
+  margin-bottom: 4px;
+}
+.sec-title span { color: var(--accent); }
+.sec-sub {
+  font-size: 0.72rem;
+  color: var(--muted);
+  letter-spacing: 1px;
+  margin-bottom: 28px;
+}
+
+/* MORENO QUOTE */
+.moreno-quote {
+  border-left: 3px solid var(--accent);
+  background: linear-gradient(90deg, rgba(245,166,35,0.06) 0%, transparent 100%);
+  padding: 14px 18px;
+  margin-bottom: 24px;
+  font-size: 0.82rem;
+  font-style: italic;
+  color: var(--text);
+  line-height: 1.6;
+}
+.moreno-quote cite {
+  display: block;
+  margin-top: 6px;
+  font-size: 0.68rem;
+  color: var(--accent);
+  font-style: normal;
+  letter-spacing: 1px;
+}
+
+/* CONCEPT CARD */
+.concept-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 14px;
+  margin-bottom: 28px;
+}
+.concept-card {
+  border: 1px solid var(--border);
+  background: var(--panel);
+  padding: 18px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+.concept-card:hover { border-color: var(--accent); }
+.concept-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 3px; height: 100%;
+}
+.concept-card.yellow::before { background: var(--accent); }
+.concept-card.cyan::before { background: var(--cyan); }
+.concept-card.pink::before { background: var(--accent2); }
+.concept-card.green::before { background: var(--green); }
+.concept-card.red::before { background: var(--red); }
+
+.card-label {
+  font-size: 0.6rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.yellow .card-label { color: var(--accent); }
+.cyan .card-label { color: var(--cyan); }
+.pink .card-label { color: var(--accent2); }
+.green .card-label { color: var(--green); }
+.red .card-label { color: var(--red); }
+
+.card-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--white);
+  margin-bottom: 8px;
+}
+.card-body {
+  font-size: 0.78rem;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+/* CODE BLOCK */
+.code-block {
+  background: #080c14;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--cyan);
+  padding: 16px 20px;
+  margin: 14px 0;
+  font-size: 0.8rem;
+  line-height: 1.8;
+  overflow-x: auto;
+  position: relative;
+}
+.code-block .kw { color: #ff79c6; }
+.code-block .type { color: var(--cyan); }
+.code-block .num { color: var(--accent); }
+.code-block .cmt { color: var(--dim); font-style: italic; }
+.code-block .str { color: var(--green); }
+.code-block .fn { color: #50fa7b; }
+.code-block .op { color: var(--accent2); }
+.code-block .label {
+  position: absolute;
+  top: 8px; right: 12px;
+  font-size: 0.58rem;
+  letter-spacing: 2px;
+  color: var(--dim);
+  text-transform: uppercase;
+}
+
+/* MEMORY DIAGRAM */
+.mem-diagram {
+  display: flex;
+  gap: 0;
+  margin: 18px 0;
+  overflow-x: auto;
+  padding-bottom: 8px;
+}
+.mem-cell {
+  min-width: 70px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  padding: 10px 6px 8px;
+  text-align: center;
+  position: relative;
+  flex-shrink: 0;
+}
+.mem-cell + .mem-cell { border-left: none; }
+.mem-cell .mc-idx {
+  font-size: 0.58rem;
+  color: var(--dim);
+  display: block;
+  margin-bottom: 4px;
+}
+.mem-cell .mc-val {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--accent);
+  display: block;
+}
+.mem-cell .mc-addr {
+  font-size: 0.5rem;
+  color: var(--dim);
+  display: block;
+  margin-top: 5px;
+}
+.mem-cell.ptr { border-color: var(--cyan); }
+.mem-cell.ptr .mc-val { color: var(--cyan); }
+.mem-cell.highlighted { border-color: var(--accent2); background: rgba(232,67,147,0.06); }
+.mem-cell.highlighted .mc-val { color: var(--accent2); }
+
+/* ARROW LABEL */
+.ptr-arrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 6px 0 14px 0;
+  font-size: 0.72rem;
+}
+.ptr-arrow .pa-name { color: var(--cyan); }
+.ptr-arrow .pa-line { flex: 1; height: 1px; background: var(--cyan); position: relative; }
+.ptr-arrow .pa-line::after {
+  content: '▶';
+  position: absolute;
+  right: -6px;
+  top: -7px;
+  font-size: 0.6rem;
+  color: var(--cyan);
+}
+.ptr-arrow .pa-target { color: var(--accent); }
+
+/* STRUCT DIAGRAM */
+.struct-box {
+  border: 1px solid var(--accent);
+  background: var(--panel);
+  display: inline-block;
+  min-width: 200px;
+  margin: 14px 0;
+}
+.struct-box .sb-header {
+  background: rgba(245,166,35,0.15);
+  padding: 8px 14px;
+  font-size: 0.72rem;
+  color: var(--accent);
+  letter-spacing: 1px;
+  border-bottom: 1px solid var(--border);
+}
+.struct-box .sb-field {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 14px;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.75rem;
+}
+.struct-box .sb-field:last-child { border-bottom: none; }
+.sb-type { color: var(--cyan); }
+.sb-name { color: var(--white); }
+.sb-size { color: var(--dim); font-size: 0.65rem; }
+
+/* PADDING DIAGRAM */
+.padding-row {
+  display: flex;
+  gap: 0;
+  margin: 12px 0;
+  overflow-x: auto;
+}
+.pad-byte {
+  min-width: 36px;
+  height: 36px;
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.6rem;
+  flex-shrink: 0;
+  color: var(--dim);
+}
+.pad-byte + .pad-byte { border-left: none; }
+.pad-byte.data { background: rgba(0,212,255,0.1); color: var(--cyan); border-color: var(--cyan); }
+.pad-byte.pad { background: rgba(255,51,85,0.1); color: var(--red); border-color: var(--red); }
+
+/* FLOWCHART */
+.flowchart {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  margin: 18px 0;
+}
+.flow-node {
+  padding: 10px 24px;
+  font-size: 0.75rem;
+  text-align: center;
+  min-width: 180px;
+  max-width: 280px;
+}
+.flow-node.start, .flow-node.end {
+  background: rgba(245,166,35,0.15);
+  border: 2px solid var(--accent);
+  border-radius: 50px;
+  color: var(--accent);
+}
+.flow-node.process {
+  background: rgba(0,212,255,0.08);
+  border: 1px solid var(--cyan);
+  color: var(--white);
+}
+.flow-node.decision {
+  background: rgba(232,67,147,0.08);
+  border: 1px solid var(--accent2);
+  color: var(--accent2);
+  transform: perspective(200px) rotateX(0deg);
+  clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+  padding: 20px 40px;
+  min-width: 200px;
+}
+.flow-arrow {
+  font-size: 1rem;
+  color: var(--dim);
+  line-height: 1;
+  padding: 2px 0;
+}
+.flow-label {
+  font-size: 0.62rem;
+  color: var(--muted);
+  text-align: center;
+  padding: 2px 0;
+}
+
+/* ALLOCATION TABLE */
+.alloc-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.75rem;
+  margin: 14px 0;
+}
+.alloc-table th {
+  background: rgba(245,166,35,0.1);
+  color: var(--accent);
+  padding: 10px 14px;
+  text-align: left;
+  font-size: 0.65rem;
+  letter-spacing: 1px;
+  border-bottom: 1px solid var(--border);
+}
+.alloc-table td {
+  padding: 9px 14px;
+  border-bottom: 1px solid rgba(31,45,69,0.5);
+  color: var(--text);
+}
+.alloc-table tr:hover td { background: rgba(255,255,255,0.02); }
+.td-fn { color: var(--green); font-weight: 700; }
+.td-params { color: var(--cyan); }
+.td-init { color: var(--accent); }
+
+/* CHALLENGE CARDS */
+.challenge-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+  margin: 18px 0;
+}
+.challenge-card {
+  border: 1px solid var(--border);
+  background: var(--panel);
+  padding: 18px;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+.challenge-card:hover { transform: translateY(-2px); }
+.challenge-card.easy { border-top: 3px solid var(--green); }
+.challenge-card.medium { border-top: 3px solid var(--accent); }
+.challenge-card.hard { border-top: 3px solid var(--red); }
+.challenge-card.expert { border-top: 3px solid var(--accent2); }
+
+.ch-badge {
+  display: inline-block;
+  font-size: 0.58rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  margin-bottom: 10px;
+  border-radius: 2px;
+}
+.easy .ch-badge { background: rgba(57,255,20,0.1); color: var(--green); }
+.medium .ch-badge { background: rgba(245,166,35,0.1); color: var(--accent); }
+.hard .ch-badge { background: rgba(255,51,85,0.1); color: var(--red); }
+.expert .ch-badge { background: rgba(232,67,147,0.1); color: var(--accent2); }
+
+.ch-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--white);
+  margin-bottom: 8px;
+}
+.ch-desc {
+  font-size: 0.72rem;
+  color: var(--muted);
+  line-height: 1.6;
+}
+.ch-expand {
+  display: none;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+  font-size: 0.72rem;
+  color: var(--text);
+  line-height: 1.7;
+}
+.ch-expand.open { display: block; animation: fadeUp 0.2s ease; }
+.ch-hint {
+  margin-top: 10px;
+  padding: 10px;
+  background: rgba(0,0,0,0.3);
+  font-size: 0.68rem;
+  color: var(--dim);
+  border-left: 2px solid var(--dim);
+}
+
+/* CALLOUT */
+.callout {
+  padding: 14px 18px;
+  margin: 14px 0;
+  font-size: 0.78rem;
+  line-height: 1.7;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+.callout.warn { background: rgba(245,166,35,0.07); border-left: 3px solid var(--accent); color: var(--text); }
+.callout.info { background: rgba(0,212,255,0.06); border-left: 3px solid var(--cyan); color: var(--text); }
+.callout.danger { background: rgba(255,51,85,0.07); border-left: 3px solid var(--red); color: var(--text); }
+.callout.success { background: rgba(57,255,20,0.05); border-left: 3px solid var(--green); color: var(--text); }
+.callout-icon { font-size: 1rem; flex-shrink: 0; }
+
+/* STEP LIST */
+.step-list { margin: 14px 0; }
+.step {
+  display: flex;
+  gap: 14px;
+  margin-bottom: 14px;
+  align-items: flex-start;
+}
+.step-num {
+  width: 28px; height: 28px;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  font-size: 0.72rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.step-content { font-size: 0.78rem; color: var(--text); line-height: 1.7; padding-top: 4px; }
+.step-content strong { color: var(--white); }
+
+/* STACK/HEAP */
+.mem-regions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin: 18px 0;
+}
+.mem-region {
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+.mr-header {
+  padding: 10px 14px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.mr-stack .mr-header { background: rgba(0,212,255,0.1); color: var(--cyan); border-bottom: 1px solid var(--border); }
+.mr-heap .mr-header { background: rgba(245,166,35,0.1); color: var(--accent); border-bottom: 1px solid var(--border); }
+.mr-body { padding: 12px 14px; font-size: 0.72rem; color: var(--muted); line-height: 1.8; }
+.mr-body span { display: block; }
+.mr-body .hi { color: var(--text); }
+
+/* INTERACTIVE POINTER DEMO */
+.ptr-demo {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  padding: 20px;
+  margin: 18px 0;
+}
+.ptr-demo-title {
+  font-size: 0.65rem;
+  color: var(--dim);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+}
+.ptr-demo-vars {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+.ptr-var {
+  text-align: center;
+}
+.pv-box {
+  width: 90px; height: 50px;
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+  position: relative;
+}
+.pv-box.pv-int { border-color: var(--cyan); color: var(--cyan); }
+.pv-box.pv-ptr { border-color: var(--accent); color: var(--accent); }
+.pv-addr { font-size: 0.58rem; color: var(--dim); }
+.pv-name { font-size: 0.72rem; color: var(--white); margin-bottom: 3px; }
+
+/* SEPARATOR */
+.sep {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 24px 0;
+}
+
+/* LABEL */
+.label-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.label-row h3 {
+  font-family: 'Syne', sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--white);
+}
+.label-row .tag {
+  font-size: 0.6rem;
+  letter-spacing: 2px;
+  padding: 3px 8px;
+  border: 1px solid var(--dim);
+  color: var(--dim);
+  text-transform: uppercase;
+}
+
+/* RESPONSIVE */
+@media (max-width: 600px) {
+  .section { padding: 20px 16px; }
+  .mem-regions { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="prof-badge">◈ Prof. Alexandre Moreno — Estrutura de Dados</div>
+  <h1>Ponteiros, <span>Structs</span> &amp; Alocação</h1>
+  <p>Guia interativo baseado no material do professor. Teoria + visualização + desafios.</p>
+</div>
+
+<nav>
+  <button class="nav-btn active" onclick="show('struct')">01 · Struct</button>
+  <button class="nav-btn" onclick="show('ponteiros')">02 · Ponteiros</button>
+  <button class="nav-btn" onclick="show('aritmetica')">03 · Aritmética</button>
+  <button class="nav-btn" onclick="show('alocacao')">04 · Alocação</button>
+  <button class="nav-btn" onclick="show('desafios')">05 · Desafios</button>
+</nav>
+
+<!-- ============================================================ STRUCT ============================================================ -->
+<div id="sec-struct" class="section active">
+  <div class="sec-title"><span>01</span> · Struct</div>
+  <div class="sec-sub">ESTRUTURAS HETEROGÊNEAS — NOVOS TIPOS DE DADOS</div>
+
+  <div class="moreno-quote">
+    "A utilização de vetores e matrizes implica em manipular uma grande quantidade de dados por meio de acesso indexado, no entanto, até então, tínhamos a limitação de que todos os elementos deveriam ser do mesmo tipo."
+    <cite>— Prof. Moreno</cite>
+  </div>
+
+  <div class="concept-grid">
+    <div class="concept-card yellow">
+      <div class="card-label">Conceito</div>
+      <div class="card-title">O que é Struct?</div>
+      <div class="card-body">Uma coleção de variáveis, possivelmente de tipos diferentes, agrupadas sob um único nome. Permite criar novos tipos de dados além dos primitivos da linguagem.</div>
+    </div>
+    <div class="concept-card cyan">
+      <div class="card-label">Motivação</div>
+      <div class="card-title">Por que usar?</div>
+      <div class="card-body">Imagine uma ficha cadastral: nome, CPF, telefone, idade. São tipos diferentes relacionados entre si. A struct une tudo em um único tipo coeso.</div>
+    </div>
+    <div class="concept-card pink">
+      <div class="card-label">Acesso</div>
+      <div class="card-title">Operador ponto (.)</div>
+      <div class="card-body">Variável normal usa <strong style="color:#e84393">pe.nome</strong>. Ponteiro para struct usa <strong style="color:#e84393">pe→nome</strong> (equivale a (*pe).nome).</div>
+    </div>
+  </div>
+
+  <div class="label-row"><h3>Sintaxe e Anatomia</h3><span class="tag">Forma Geral</span></div>
+
+  <div class="code-block">
+    <span class="label">C · struct</span>
+    <span class="cmt">// Declarada GLOBALMENTE (antes do main)</span><br>
+    <span class="kw">struct</span> <span class="type">Pessoa</span> {<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="type">char</span>  nome[<span class="num">50</span>];    <span class="cmt">// 50 bytes</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="type">char</span>  fone[<span class="num">16</span>];    <span class="cmt">// 16 bytes</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="type">int</span>   idade;        <span class="cmt">// 4 bytes</span><br>
+    };<br><br>
+    <span class="cmt">// Com typedef — mais conveniente:</span><br>
+    <span class="kw">typedef struct</span> {<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="type">char</span>  nome[<span class="num">50</span>];<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="type">char</span>  fone[<span class="num">16</span>];<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="type">int</span>   idade;<br>
+    } <span class="type">Pessoa</span>;<br><br>
+    <span class="cmt">// Sem typedef → struct Pessoa pe;</span><br>
+    <span class="cmt">// Com typedef  →       Pessoa pe;  ← mais limpo!</span>
+  </div>
+
+  <div class="label-row" style="margin-top:24px"><h3>Visualização em Memória</h3><span class="tag">32/64 bits</span></div>
+
+  <div style="display:flex; gap:20px; flex-wrap:wrap; margin:14px 0;">
+    <div class="struct-box">
+      <div class="sb-header">struct Pessoa · pe</div>
+      <div class="sb-field"><span class="sb-type">char</span><span class="sb-name">nome[50]</span><span class="sb-size">50 bytes</span></div>
+      <div class="sb-field"><span class="sb-type">char</span><span class="sb-name">fone[16]</span><span class="sb-size">16 bytes</span></div>
+      <div class="sb-field"><span class="sb-type">int</span><span class="sb-name">idade</span><span class="sb-size">4 bytes</span></div>
+      <div class="sb-field" style="background:rgba(245,166,35,0.06)"><span class="sb-type" style="color:var(--accent)">sizeof</span><span class="sb-name" style="color:var(--white)">TOTAL</span><span class="sb-size" style="color:var(--accent)">70 bytes*</span></div>
+    </div>
+    <div style="max-width:280px">
+      <div class="callout warn">
+        <span class="callout-icon">⚠</span>
+        <span><strong>Padding!</strong> sizeof(struct) não é sempre a soma dos campos. A CPU adiciona bytes de alinhamento. O tamanho final deve ser múltiplo do maior tipo dos membros.</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="label-row" style="margin-top:8px"><h3>Padding — Regra de Alinhamento</h3><span class="tag">Prof. Moreno</span></div>
+
+  <div style="font-size:0.75rem; color:var(--muted); margin-bottom:10px;">
+    Regra 1: Entre campos, offset deve ser múltiplo do tipo seguinte.<br>
+    Regra 2: Tamanho total da struct deve ser múltiplo do <strong style="color:var(--white)">maior tipo</strong> dos membros.
+  </div>
+
+  <div class="code-block">
+    <span class="label">Exemplo</span>
+    <span class="kw">struct</span> Exemplo1 { <span class="type">char</span> a; <span class="type">int</span> b; };  <span class="cmt">// maior tipo = int (4)</span>
+  </div>
+
+  <div style="font-size:0.72rem; color:var(--muted); margin:8px 0 4px;">Layout em memória (8 bytes, não 5!):</div>
+  <div class="padding-row">
+    <div class="pad-byte data" title="a">a</div>
+    <div class="pad-byte pad" title="padding">P</div>
+    <div class="pad-byte pad" title="padding">P</div>
+    <div class="pad-byte pad" title="padding">P</div>
+    <div class="pad-byte data" title="b[0]">b₀</div>
+    <div class="pad-byte data" title="b[1]">b₁</div>
+    <div class="pad-byte data" title="b[2]">b₂</div>
+    <div class="pad-byte data" title="b[3]">b₃</div>
+  </div>
+  <div style="font-size:0.65rem; color:var(--dim); margin-bottom:20px;">
+    <span style="color:var(--cyan)">■ dado</span> &nbsp; <span style="color:var(--red)">■ padding</span> &nbsp;·&nbsp; sizeof = 8 (não 5!)
+  </div>
+
+  <div class="label-row"><h3>Vetor de Struct</h3><span class="tag">Array</span></div>
+  <div class="code-block">
+    <span class="label">C</span>
+    Pessoa pe[<span class="num">5</span>];               <span class="cmt">// 5 elementos do tipo Pessoa</span><br>
+    pe[<span class="num">0</span>].nome  = <span class="str">"Ana"</span>;  <span class="cmt">// acesso: índice + ponto + campo</span><br>
+    pe[<span class="num">0</span>].idade = <span class="num">21</span>;<br><br>
+    <span class="cmt">// Copiar struct inteira de uma vez:</span><br>
+    pe[<span class="num">1</span>] = pe[<span class="num">0</span>];           <span class="cmt">// copia TODOS os campos !</span>
+  </div>
+
+  <div class="label-row" style="margin-top:20px"><h3>Aninhamento de Structs</h3><span class="tag">Nested</span></div>
+  <div class="callout info">
+    <span class="callout-icon">ℹ</span>
+    Uma struct é um tipo de dado. Logo, ela pode conter variáveis de outras structs previamente definidas.
+  </div>
+  <div class="code-block">
+    <span class="label">C</span>
+    <span class="kw">typedef struct</span> { <span class="type">int</span> dia, mes, ano; } <span class="type">Data</span>;<br><br>
+    <span class="kw">typedef struct</span> {<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="type">char</span> nome[<span class="num">50</span>];<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="type">Data</span> nascimento;  <span class="cmt">// struct dentro de struct!</span><br>
+    } <span class="type">Aluno</span>;<br><br>
+    Aluno a;<br>
+    a.nascimento.ano = <span class="num">2002</span>;  <span class="cmt">// acesso encadeado</span>
+  </div>
+</div>
+
+<!-- ============================================================ PONTEIROS ============================================================ -->
+<div id="sec-ponteiros" class="section">
+  <div class="sec-title"><span>02</span> · Ponteiros</div>
+  <div class="sec-sub">VARIÁVEL QUE GUARDA UM ENDEREÇO DE MEMÓRIA</div>
+
+  <div class="moreno-quote">
+    "Um ponteiro é uma variável que armazena o endereço de memória de outra variável. Em outras palavras, um ponteiro 'aponta' para a localização de outra variável na memória do computador."
+    <cite>— Prof. Moreno (citando Tenenbaum, 1995)</cite>
+  </div>
+
+  <div class="concept-grid">
+    <div class="concept-card yellow">
+      <div class="card-label">Tamanho</div>
+      <div class="card-title">32 bits = 4 bytes<br>64 bits = 8 bytes</div>
+      <div class="card-body">Todo ponteiro ocupa o mesmo espaço, independente do tipo que aponta. O tipo determina como a leitura/escrita é feita.</div>
+    </div>
+    <div class="concept-card cyan">
+      <div class="card-label">Operadores</div>
+      <div class="card-title">&amp; e *</div>
+      <div class="card-body"><strong style="color:#f5a623">&amp;</strong> obtém o endereço de uma variável.<br><strong style="color:#00d4ff">*</strong> desreferencia — acessa o conteúdo do endereço apontado.</div>
+    </div>
+    <div class="concept-card green">
+      <div class="card-label">Vetor</div>
+      <div class="card-title">Vetor = Ponteiro</div>
+      <div class="card-body">O nome de um vetor <strong>já é um ponteiro</strong> para o seu primeiro elemento. scanf("%s", nome) funciona sem &amp; por isso.</div>
+    </div>
+  </div>
+
+  <div class="label-row"><h3>Como declarar e usar</h3><span class="tag">Sintaxe</span></div>
+  <div class="code-block">
+    <span class="label">C</span>
+    <span class="type">int</span>  x      = <span class="num">22</span>;         <span class="cmt">// variável normal</span><br>
+    <span class="type">int</span>  *ptr_x  = <span class="op">&amp;</span>x;      <span class="cmt">// ptr_x aponta para x</span><br><br>
+    <span class="fn">printf</span>(<span class="str">"%d"</span>,  x);       <span class="cmt">// 22   — valor de x</span><br>
+    <span class="fn">printf</span>(<span class="str">"%p"</span>, <span class="op">&amp;</span>x);       <span class="cmt">// 0060FEF0 — endereço de x</span><br>
+    <span class="fn">printf</span>(<span class="str">"%p"</span>,  ptr_x);   <span class="cmt">// 0060FEF0 — conteúdo do ptr</span><br>
+    <span class="fn">printf</span>(<span class="str">"%d"</span>, <span class="op">*</span>ptr_x);   <span class="cmt">// 22   — valor apontado</span><br><br>
+    <span class="op">*</span>ptr_x = <span class="num">100</span>;           <span class="cmt">// altera x PELO ponteiro</span><br>
+    <span class="fn">printf</span>(<span class="str">"%d"</span>,  x);       <span class="cmt">// 100 — x foi modificado!</span>
+  </div>
+
+  <div class="label-row" style="margin-top:24px"><h3>Visualização na Memória (32 bits)</h3><span class="tag">Diagrama</span></div>
+
+  <div style="font-size:0.72rem; color:var(--muted); margin-bottom:10px;">
+    Variável <strong style="color:var(--cyan)">x</strong> (int, 4 bytes) e ponteiro <strong style="color:var(--accent)">ptr_x</strong> (int*, 4 bytes):
+  </div>
+  <div class="mem-diagram">
+    <div class="mem-cell ptr">
+      <span class="mc-idx">x</span>
+      <span class="mc-val" style="color:var(--cyan)">22</span>
+      <span class="mc-addr">0060FEF0</span>
+    </div>
+    <div class="mem-cell">
+      <span class="mc-idx">&nbsp;</span>
+      <span class="mc-val" style="color:var(--dim)">···</span>
+      <span class="mc-addr">…</span>
+    </div>
+    <div class="mem-cell highlighted">
+      <span class="mc-idx">ptr_x</span>
+      <span class="mc-val" style="color:var(--accent)">0060FEF0</span>
+      <span class="mc-addr">0060FEF4</span>
+    </div>
+  </div>
+  <div class="ptr-arrow">
+    <span class="pa-name">*ptr_x</span>
+    <span class="pa-line"></span>
+    <span class="pa-target">→ acessa x (valor 22)</span>
+  </div>
+
+  <hr class="sep">
+
+  <div class="label-row"><h3>Ponteiro como Parâmetro</h3><span class="tag">Passagem por Referência</span></div>
+  <div class="callout info">
+    <span class="callout-icon">ℹ</span>
+    Em C, funções só retornam um valor. Com ponteiros como parâmetros, você pode "retornar" múltiplos valores modificando variáveis por referência.
+  </div>
+  <div class="code-block">
+    <span class="label">C · swap</span>
+    <span class="kw">void</span> <span class="fn">troca</span>(<span class="type">int</span> <span class="op">*</span>a, <span class="type">int</span> <span class="op">*</span>b) {<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="type">int</span> aux = <span class="op">*</span>a;<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="op">*</span>a = <span class="op">*</span>b;<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="op">*</span>b = aux;<br>
+    }<br><br>
+    <span class="cmt">// Chamada — envia ENDEREÇOS:</span><br>
+    <span class="type">int</span> x = <span class="num">10</span>, y = <span class="num">20</span>;<br>
+    <span class="fn">troca</span>(<span class="op">&amp;</span>x, <span class="op">&amp;</span>y);  <span class="cmt">// x=20, y=10 após retorno</span>
+  </div>
+
+  <hr class="sep">
+
+  <div class="label-row"><h3>Ponteiro para Struct</h3><span class="tag">Operador →</span></div>
+  <div class="callout warn">
+    <span class="callout-icon">⚠</span>
+    Ao acessar dados de um ponteiro para struct, o ponto (.) é substituído por seta (→). Isso é necessário pois estamos trabalhando com um endereço de memória.
+  </div>
+  <div class="code-block">
+    <span class="label">C</span>
+    Pessoa pe = {<span class="str">"Ana"</span>, <span class="str">"9999-0000"</span>, <span class="num">21</span>};<br>
+    Pessoa <span class="op">*</span>ptr = <span class="op">&amp;</span>pe;<br><br>
+    <span class="cmt">// Formas EQUIVALENTES de acessar:</span><br>
+    <span class="fn">printf</span>(<span class="str">"%s"</span>, pe.nome);       <span class="cmt">// via variável</span><br>
+    <span class="fn">printf</span>(<span class="str">"%s"</span>, ptr<span class="op">-&gt;</span>nome);    <span class="cmt">// via ponteiro (→)</span><br>
+    <span class="fn">printf</span>(<span class="str">"%s"</span>, (<span class="op">*</span>ptr).nome);  <span class="cmt">// via ponteiro (equivalente)</span>
+  </div>
+
+  <hr class="sep">
+
+  <div class="label-row"><h3>Ponteiro para Ponteiro</h3><span class="tag">**</span></div>
+  <div class="code-block">
+    <span class="label">C</span>
+    <span class="type">int</span>   a   = <span class="num">22</span>;<br>
+    <span class="type">int</span>  <span class="op">*</span>b   = <span class="op">&amp;</span>a;   <span class="cmt">// b aponta para a</span><br>
+    <span class="type">int</span> <span class="op">**</span>c   = <span class="op">&amp;</span>b;   <span class="cmt">// c aponta para b</span><br><br>
+    <span class="fn">printf</span>(<span class="str">"%d"</span>, a);      <span class="cmt">// 22</span><br>
+    <span class="fn">printf</span>(<span class="str">"%d"</span>, <span class="op">*</span>b);     <span class="cmt">// 22</span><br>
+    <span class="fn">printf</span>(<span class="str">"%d"</span>, <span class="op">**</span>c);    <span class="cmt">// 22</span><br><br>
+    <span class="cmt">// Também existe: int ***d (triplo ponteiro)</span>
+  </div>
+
+  <div class="mem-diagram" style="margin-top:14px">
+    <div class="mem-cell ptr">
+      <span class="mc-idx">a</span>
+      <span class="mc-val" style="color:var(--cyan)">22</span>
+      <span class="mc-addr">0060FF24</span>
+    </div>
+    <div class="mem-cell highlighted">
+      <span class="mc-idx">b (int*)</span>
+      <span class="mc-val" style="color:var(--accent)">0060FF24</span>
+      <span class="mc-addr">0060FF20</span>
+    </div>
+    <div class="mem-cell" style="border-color:var(--accent2)">
+      <span class="mc-idx">c (int**)</span>
+      <span class="mc-val" style="color:var(--accent2)">0060FF20</span>
+      <span class="mc-addr">0060FF1C</span>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ ARITMÉTICA ============================================================ -->
+<div id="sec-aritmetica" class="section">
+  <div class="sec-title"><span>03</span> · Aritmética de Ponteiros</div>
+  <div class="sec-sub">NAVEGANDO PELA MEMÓRIA COM PRECISÃO CIRÚRGICA</div>
+
+  <div class="moreno-quote">
+    "Não será somado o valor 1 ao endereço, mas sim, como o tipo do ponteiro é int, ele somará 4 bytes que é o tamanho de 1 int."
+    <cite>— Prof. Moreno</cite>
+  </div>
+
+  <div class="concept-grid">
+    <div class="concept-card yellow">
+      <div class="card-label">Operações válidas</div>
+      <div class="card-title">+, −, ++, −−</div>
+      <div class="card-body">Apenas adição, subtração e incremento/decremento. Multiplicação e divisão NÃO fazem sentido para endereços.</div>
+    </div>
+    <div class="concept-card red">
+      <div class="card-label">void pointer</div>
+      <div class="card-title">void* — Cuidado!</div>
+      <div class="card-body">Ponteiro genérico não suporta aritmética! O compilador não sabe quantos bytes pular. Declare sempre o tipo correto.</div>
+    </div>
+    <div class="concept-card green">
+      <div class="card-label">Vetor</div>
+      <div class="card-title">*(v + i) == v[i]</div>
+      <div class="card-body">As duas notações são equivalentes. Aritmética de ponteiros é a base de como vetores funcionam internamente em C.</div>
+    </div>
+  </div>
+
+  <div class="label-row"><h3>Como o +1 funciona na prática</h3><span class="tag">int* vs char*</span></div>
+
+  <div class="code-block">
+    <span class="label">C</span>
+    <span class="type">int</span>  v[<span class="num">5</span>] = {<span class="num">10</span>, <span class="num">20</span>, <span class="num">30</span>, <span class="num">40</span>, <span class="num">50</span>};<br>
+    <span class="type">int</span> <span class="op">*</span>p = v;  <span class="cmt">// p aponta para v[0]</span><br><br>
+    <span class="fn">printf</span>(<span class="str">"%d"</span>, <span class="op">*</span>p);         <span class="cmt">// 10 → v[0]</span><br>
+    <span class="fn">printf</span>(<span class="str">"%d"</span>, <span class="op">*</span>(p <span class="op">+</span> <span class="num">1</span>));   <span class="cmt">// 20 → v[1] (pulou 4 bytes)</span><br>
+    <span class="fn">printf</span>(<span class="str">"%d"</span>, <span class="op">*</span>(p <span class="op">+</span> <span class="num">2</span>));   <span class="cmt">// 30 → v[2] (pulou 8 bytes)</span><br><br>
+    p<span class="op">++</span>;  <span class="cmt">// agora p aponta para v[1]</span><br>
+    <span class="fn">printf</span>(<span class="str">"%d"</span>, <span class="op">*</span>p);         <span class="cmt">// 20</span>
+  </div>
+
+  <div style="font-size:0.72rem; color:var(--muted); margin:14px 0 6px;">Endereços em memória (int = 4 bytes cada):</div>
+  <div class="mem-diagram">
+    <div class="mem-cell ptr"><span class="mc-idx">v[0] ← p</span><span class="mc-val">10</span><span class="mc-addr">0010AA00</span></div>
+    <div class="mem-cell"><span class="mc-idx">v[1]</span><span class="mc-val" style="color:var(--text)">20</span><span class="mc-addr">0010AA04</span></div>
+    <div class="mem-cell"><span class="mc-idx">v[2]</span><span class="mc-val" style="color:var(--text)">30</span><span class="mc-addr">0010AA08</span></div>
+    <div class="mem-cell"><span class="mc-idx">v[3]</span><span class="mc-val" style="color:var(--text)">40</span><span class="mc-addr">0010AA0C</span></div>
+    <div class="mem-cell"><span class="mc-idx">v[4]</span><span class="mc-val" style="color:var(--text)">50</span><span class="mc-addr">0010AA10</span></div>
+  </div>
+
+  <hr class="sep">
+
+  <div class="label-row"><h3>Percorrer vetor com ponteiro (evolução do código)</h3><span class="tag">Otimização</span></div>
+  <div class="callout info">
+    <span class="callout-icon">💡</span>
+    O Prof. Moreno mostrou 4 versões progressivamente mais eficientes. A versão com ponteiro direto é a mais performática.
+  </div>
+
+  <div class="code-block">
+    <span class="label">v1 · clássico (laço com índice)</span>
+    <span class="kw">for</span> (<span class="type">int</span> i = <span class="num">0</span>; i &lt; size; i++)<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if</span> (nome[i] != <span class="str">'\0'</span>) contador++;
+  </div>
+
+  <div class="code-block">
+    <span class="label">v4 · ponteiro direto (mais eficiente)</span>
+    <span class="type">char</span> <span class="op">*</span>p = nome;<br>
+    <span class="kw">while</span> (<span class="op">*</span>p != <span class="str">'\0'</span>) {<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;contador++;<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;p<span class="op">++</span>;<br>
+    }<br>
+    <span class="cmt">// Ou ainda mais enxuto:</span><br>
+    <span class="kw">while</span> (<span class="op">*</span>p<span class="op">++</span>) contador++;  <span class="cmt">// ponteiro olha diretamente!</span>
+  </div>
+
+  <hr class="sep">
+
+  <div class="label-row"><h3>Aritmética com Matriz Dinâmica</h3><span class="tag">2D</span></div>
+  <div class="callout warn">
+    <span class="callout-icon">⚠</span>
+    Matriz tem 2 dimensões. São necessárias 2 aritmética de ponteiros: uma para a linha, outra para a coluna.
+  </div>
+  <div class="code-block">
+    <span class="label">C · ponteiro de ponteiro</span>
+    <span class="type">int</span> <span class="op">**</span>mat;  <span class="cmt">// ponteiro de ponteiro</span><br><br>
+    <span class="cmt">// Acessar mat[2][3] via aritmética:</span><br>
+    <span class="op">*</span>(<span class="op">*</span>(mat <span class="op">+</span> <span class="num">2</span>) <span class="op">+</span> <span class="num">3</span>);<br>
+    <span class="cmt">//  ↑ aritmética linha   ↑ aritmética coluna</span><br><br>
+    <span class="cmt">// mat + 2     → endereço do ponteiro da linha 2</span><br>
+    <span class="cmt">// *(mat + 2)  → conteúdo = endereço início linha 2</span><br>
+    <span class="cmt">// + 3         → avança 3 posições na linha</span><br>
+    <span class="cmt">// *( ... )    → valor final</span>
+  </div>
+</div>
+
+<!-- ============================================================ ALOCAÇÃO ============================================================ -->
+<div id="sec-alocacao" class="section">
+  <div class="sec-title"><span>04</span> · Alocação Dinâmica</div>
+  <div class="sec-sub">MEMÓRIA EM TEMPO DE EXECUÇÃO — STACK vs HEAP</div>
+
+  <div class="moreno-quote">
+    "Em muitas situações é necessário alocar a memória em tempo de execução. Permite que o espaço em memória seja alocado apenas quando necessário."
+    <cite>— Prof. Moreno</cite>
+  </div>
+
+  <div class="mem-regions">
+    <div class="mem-region mr-stack">
+      <div class="mr-header">STACK (Pilha)</div>
+      <div class="mr-body">
+        <span class="hi">Variáveis locais de funções</span>
+        <span>Tamanho fixo por thread</span>
+        <span>Windows: ~1MB · Linux: ~8MB</span>
+        <span>Desaparece ao fim da função</span>
+        <span style="color:var(--red); margin-top:4px">→ automático, não você</span>
+      </div>
+    </div>
+    <div class="mem-region mr-heap">
+      <div class="mr-header">HEAP (Dinâmica)</div>
+      <div class="mr-body">
+        <span class="hi">malloc / calloc / realloc</span>
+        <span>Cresce conforme necessário</span>
+        <span>Pode usar GBs de RAM</span>
+        <span>Persiste além da função</span>
+        <span style="color:var(--accent); margin-top:4px">→ <strong>você</strong> gerencia com free()</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout warn">
+    <span class="callout-icon">⚠</span>
+    <strong>De quem é a responsabilidade de liberar a memória alocada dinamicamente? Do programador!</strong> A região ficará marcada como ocupada até ser liberada ou o programa encerrar.
+  </div>
+
+  <div class="label-row" style="margin-top:24px"><h3>As 3 Funções de Alocação</h3><span class="tag">stdlib.h</span></div>
+
+  <table class="alloc-table">
+    <tr>
+      <th>Função</th>
+      <th>Parâmetros</th>
+      <th>Inicializa?</th>
+      <th>Uso principal</th>
+    </tr>
+    <tr>
+      <td class="td-fn">malloc()</td>
+      <td class="td-params">size_t bytes</td>
+      <td class="td-init" style="color:var(--red)">NÃO (lixo)</td>
+      <td>Aloca N bytes; retorna void*</td>
+    </tr>
+    <tr>
+      <td class="td-fn">calloc()</td>
+      <td class="td-params">n, size</td>
+      <td class="td-init" style="color:var(--green)">SIM (zeros)</td>
+      <td>Aloca n×size bytes zerados</td>
+    </tr>
+    <tr>
+      <td class="td-fn">realloc()</td>
+      <td class="td-params">ptr, novo_size</td>
+      <td class="td-init" style="color:var(--accent)">Mantém dados</td>
+      <td>Redimensiona bloco existente</td>
+    </tr>
+    <tr>
+      <td class="td-fn">free()</td>
+      <td class="td-params">ptr</td>
+      <td>—</td>
+      <td>Libera memória; obrigatório!</td>
+    </tr>
+  </table>
+
+  <div class="label-row" style="margin-top:24px"><h3>malloc — Passo a Passo</h3><span class="tag">Fluxo</span></div>
+
+  <div class="flowchart">
+    <div class="flow-node start">Início</div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-node process">int *x = (int*) malloc(sizeof(int))</div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-node process" style="font-size:0.7rem">malloc aloca 4 bytes na HEAP<br>retorna endereço ou NULL</div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-node process">if (x != NULL) — verifica sucesso</div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-node process">Usa o espaço: *x = 42;</div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-node process" style="border-color:var(--red); color:var(--red)">free(x) — OBRIGATÓRIO!</div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-node end">Fim</div>
+  </div>
+
+  <div class="label-row" style="margin-top:24px"><h3>Vetor Dinâmico</h3><span class="tag">Runtime</span></div>
+  <div class="code-block">
+    <span class="label">C</span>
+    <span class="type">int</span> n;<br>
+    <span class="fn">scanf</span>(<span class="str">"%d"</span>, <span class="op">&amp;</span>n);<br><br>
+    <span class="type">int</span> <span class="op">*</span>v = (<span class="type">int</span><span class="op">*</span>) <span class="fn">malloc</span>(n <span class="op">*</span> <span class="kw">sizeof</span>(<span class="type">int</span>));<br>
+    <span class="kw">if</span> (!v) { <span class="fn">printf</span>(<span class="str">"Erro!"</span>); <span class="kw">return</span> <span class="num">1</span>; }<br><br>
+    <span class="kw">for</span> (<span class="type">int</span> i = <span class="num">0</span>; i &lt; n; i++) v[i] = i <span class="op">*</span> <span class="num">2</span>;<br><br>
+    <span class="fn">free</span>(v);   <span class="cmt">// sempre!</span>
+  </div>
+
+  <hr class="sep">
+
+  <div class="label-row"><h3>Matriz Dinâmica — Vetor de Vetores</h3><span class="tag">int**</span></div>
+
+  <div class="callout info">
+    <span class="callout-icon">ℹ</span>
+    Uma matriz dinâmica é um <strong>vetor de ponteiros</strong>. Cada posição do vetor aponta para outro vetor (a linha). Alocação em 2 etapas, liberação em 2 etapas.
+  </div>
+
+  <div class="code-block">
+    <span class="label">C · Alocação</span>
+    <span class="type">int</span> lin = <span class="num">3</span>, col = <span class="num">4</span>;<br><br>
+    <span class="cmt">// Etapa 1: aloca vetor de ponteiros (linhas)</span><br>
+    <span class="type">int</span> <span class="op">**</span>mat = (<span class="type">int</span><span class="op">**</span>) <span class="fn">malloc</span>(lin <span class="op">*</span> <span class="kw">sizeof</span>(<span class="type">int</span><span class="op">*</span>));<br><br>
+    <span class="cmt">// Etapa 2: para cada linha, aloca as colunas</span><br>
+    <span class="kw">for</span> (<span class="type">int</span> i = <span class="num">0</span>; i &lt; lin; i++)<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;mat[i] = (<span class="type">int</span><span class="op">*</span>) <span class="fn">malloc</span>(col <span class="op">*</span> <span class="kw">sizeof</span>(<span class="type">int</span>));
+  </div>
+
+  <div class="code-block">
+    <span class="label">C · Liberação (ordem inversa!)</span>
+    <span class="cmt">// Etapa 1: libera cada linha</span><br>
+    <span class="kw">for</span> (<span class="type">int</span> i = <span class="num">0</span>; i &lt; lin; i++)<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="fn">free</span>(mat[i]);<br><br>
+    <span class="cmt">// Etapa 2: libera o vetor de ponteiros</span><br>
+    <span class="fn">free</span>(mat);<br><br>
+    <span class="cmt">// NUNCA faça free(mat) primeiro!</span><br>
+    <span class="cmt">// As linhas ficarão órfãs e inacessíveis (memory leak!)</span>
+  </div>
+
+  <hr class="sep">
+
+  <div class="label-row"><h3>realloc — Redimensionando em Runtime</h3><span class="tag">Realloc</span></div>
+  <div class="callout info">
+    <span class="callout-icon">💡</span>
+    O realloc pode <strong>mudar o endereço</strong> do bloco se não houver espaço contíguo. Sempre salve o retorno em uma variável separada antes de sobrescrever o ponteiro original!
+  </div>
+  <div class="code-block">
+    <span class="label">C · realloc seguro</span>
+    <span class="type">int</span> <span class="op">*</span>tmp = (<span class="type">int</span><span class="op">*</span>) <span class="fn">realloc</span>(v, novo_n <span class="op">*</span> <span class="kw">sizeof</span>(<span class="type">int</span>));<br>
+    <span class="kw">if</span> (!tmp) {<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="fn">printf</span>(<span class="str">"Falhou!"</span>);  <span class="cmt">// v ainda é válido!</span><br>
+    } <span class="kw">else</span> {<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;v = tmp;         <span class="cmt">// atualiza apenas se deu certo</span><br>
+    }
+  </div>
+</div>
+
+<!-- ============================================================ DESAFIOS ============================================================ -->
+<div id="sec-desafios" class="section">
+  <div class="sec-title"><span>05</span> · Desafios</div>
+  <div class="sec-sub">COLOCANDO EM PRÁTICA — 4 NÍVEIS DE DIFICULDADE</div>
+
+  <div class="moreno-quote">
+    "Aqui, errar faz parte. O que não funciona é não tentar."
+    <cite>— Prof. Moreno</cite>
+  </div>
+
+  <div class="challenge-grid">
+
+    <!-- BAIXO -->
+    <div class="challenge-card easy" onclick="toggleChallenge(this)">
+      <div class="ch-badge">⬢ Baixo</div>
+      <div class="ch-title">Troca com Ponteiros</div>
+      <div class="ch-desc">Implemente uma função <code>troca(int *a, int *b)</code> que troque os valores de duas variáveis inteiras sem retornar nenhum valor.</div>
+      <div class="ch-expand">
+        <strong style="color:var(--green)">O que praticar:</strong> passagem por referência, operador *, conceito de que a função altera a variável original via endereço.
+        <div class="ch-hint">
+          💡 Dica: void troca(int *a, int *b). Use uma variável auxiliar: int aux = *a; *a = *b; *b = aux;
+        </div>
+      </div>
+    </div>
+
+    <!-- BAIXO 2 -->
+    <div class="challenge-card easy" onclick="toggleChallenge(this)">
+      <div class="ch-badge">⬢ Baixo</div>
+      <div class="ch-title">Endereços do Vetor</div>
+      <div class="ch-desc">Crie um vetor de 5 inteiros. Use aritmética de ponteiros para imprimir o endereço e o valor de cada posição sem usar o operador [].</div>
+      <div class="ch-expand">
+        <strong style="color:var(--green)">O que praticar:</strong> aritmética de ponteiros, equivalência entre v[i] e *(v+i), formato %p para endereços.
+        <div class="ch-hint">
+          💡 Dica: int *p = v; for(int i=0; i&lt;5; i++) printf("%p %d\n", p+i, *(p+i));
+        </div>
+      </div>
+    </div>
+
+    <!-- MÉDIO -->
+    <div class="challenge-card medium" onclick="toggleChallenge(this)">
+      <div class="ch-badge">⬡ Médio</div>
+      <div class="ch-title">Cadastro com Struct</div>
+      <div class="ch-desc">Crie uma struct Aluno com nome, nota1, nota2, nota3 e media. Leia dados de 5 alunos, calcule a média e classifique por nome com bubble sort. Use ponteiro como parâmetro na função de ordenação.</div>
+      <div class="ch-expand">
+        <strong style="color:var(--accent)">O que praticar:</strong> struct, vetor de struct, ponteiro para struct como parâmetro (para que a troca funcione de verdade), strcmp para comparação de strings.
+        <div class="ch-hint">
+          💡 Dica: void classifica(Aluno *v, int n). Use strcpy para copiar structs? Não! Aluno temp = v[i]; v[i] = v[j]; v[j] = temp; funciona porque structs podem ser atribuídas diretamente.
+        </div>
+      </div>
+    </div>
+
+    <!-- MÉDIO 2 -->
+    <div class="challenge-card medium" onclick="toggleChallenge(this)">
+      <div class="ch-badge">⬡ Médio</div>
+      <div class="ch-title">Maior e Menor com Ptr</div>
+      <div class="ch-desc">Faça uma função <code>minmax(int *v, int n, int *menor, int *maior)</code> que encontre o menor e o maior elemento de um vetor. Retorne os dois valores via ponteiros de saída.</div>
+      <div class="ch-expand">
+        <strong style="color:var(--accent)">O que praticar:</strong> múltiplos valores de retorno via ponteiros, percorrer vetor com aritmética de ponteiros, inicialização com lixo de memória (como o Moreno mencionou).
+        <div class="ch-hint">
+          💡 Dica: Inicialize *menor = v[0] e *maior = v[0], depois percorra de i=1 até n-1 comparando e atualizando. Chame com: minmax(v, 5, &min, &max);
+        </div>
+      </div>
+    </div>
+
+    <!-- ALTO -->
+    <div class="challenge-card hard" onclick="toggleChallenge(this)">
+      <div class="ch-badge">◆ Alto</div>
+      <div class="ch-title">Vetor Dinâmico com Realloc</div>
+      <div class="ch-desc">Crie um programa que leia números inteiros do usuário um a um (0 para encerrar). Use malloc/realloc para crescer o vetor conforme necessário. Ao fim, imprima todos e libere a memória.</div>
+      <div class="ch-expand">
+        <strong style="color:var(--red)">O que praticar:</strong> malloc, realloc seguro (com ponteiro temporário), free, controle dinâmico de tamanho em runtime.
+        <div class="ch-hint">
+          💡 Dica: Comece com int *v = malloc(sizeof(int)), size=0, cap=1. A cada inserção, se size == cap: cap *= 2; int *tmp = realloc(v, cap * sizeof(int)); if(tmp) v = tmp; Nunca faça v = realloc(v, ...) diretamente!
+        </div>
+      </div>
+    </div>
+
+    <!-- ALTO 2 -->
+    <div class="challenge-card hard" onclick="toggleChallenge(this)">
+      <div class="ch-badge">◆ Alto</div>
+      <div class="ch-title">Inverter String com Ptrs</div>
+      <div class="ch-desc">Implemente uma função que inverta uma string no próprio vetor (sem cópia) usando apenas aritmética de ponteiros — sem usar índices com []. Retorne a quantidade de caracteres invertidos.</div>
+      <div class="ch-expand">
+        <strong style="color:var(--red)">O que praticar:</strong> dois ponteiros caminhando pelas extremidades (técnica clássica), aritmética de ponteiros pura, manipulação de string sem índices.
+        <div class="ch-hint">
+          💡 Dica: char *ini = s; char *fim = s; while(*fim) fim++; fim--; while(ini &lt; fim) { char tmp = *ini; *ini = *fim; *fim = tmp; ini++; fim--; }
+        </div>
+      </div>
+    </div>
+
+    <!-- ALTÍSSIMO -->
+    <div class="challenge-card expert" onclick="toggleChallenge(this)">
+      <div class="ch-badge">★ Altíssimo</div>
+      <div class="ch-title">Matriz Dinâmica de Structs</div>
+      <div class="ch-desc">Crie uma matriz dinâmica de structs Produto (código, nome[50], preço). Leia as dimensões em runtime, preencha, ordene cada linha pelo preço com bubble sort usando ponteiro de ponteiro. Libere tudo corretamente.</div>
+      <div class="ch-expand">
+        <strong style="color:var(--accent2)">O que praticar:</strong> ponteiro triplo conceitual (Produto**), alocação em 2 etapas, aritmética em 2 dimensões, função de ordenação recebendo Produto* (linha), liberação na ordem inversa.
+        <div class="ch-hint">
+          💡 Dica: Typedef produto. Produto **mat = malloc(lin * sizeof(Produto*)). Para cada i: mat[i] = malloc(col * sizeof(Produto)). Função: void ordena_linha(Produto *linha, int n). Liberação: for(i) free(mat[i]); free(mat);
+        </div>
+      </div>
+    </div>
+
+    <!-- ALTÍSSIMO 2 -->
+    <div class="challenge-card expert" onclick="toggleChallenge(this)">
+      <div class="ch-badge">★ Altíssimo</div>
+      <div class="ch-title">Calculadora de sizeof + Padding</div>
+      <div class="ch-desc">Crie 5 structs com campos de tipos misturados (char, short, int, double). Para cada uma: calcule manualmente o tamanho esperado considerando padding, depois confirme com sizeof(). Identifique onde o padding ocorre e prove reordenando os campos para minimizar o tamanho.</div>
+      <div class="ch-expand">
+        <strong style="color:var(--accent2)">O que praticar:</strong> regras de padding (alinhamento interno + tamanho múltiplo do maior tipo), offsetof() da stddef.h, efeito da ordem dos campos no tamanho final da struct.
+        <div class="ch-hint">
+          💡 Dica: Use offsetof(struct X, campo) para ver onde cada campo começa. Regra de ouro: ordene os campos do maior para o menor tipo para minimizar padding (double, int, short, char). Confirme com __attribute__((packed)) vs versão normal.
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="callout success" style="margin-top:24px">
+    <span class="callout-icon">🎯</span>
+    <span><strong>Moreno diz:</strong> "Eu vou ensinar, explicar e ajudar. Mas ninguém aprende Estrutura de Dados só assistindo aula." — Bora codar!</span>
+  </div>
+</div>
+
+<script>
+function show(tab) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('sec-' + tab).classList.add('active');
+  event.currentTarget.classList.add('active');
+}
+
+function toggleChallenge(card) {
+  const expand = card.querySelector('.ch-expand');
+  expand.classList.toggle('open');
+}
+</script>
+</body>
+</html>
